@@ -6,8 +6,14 @@ static NPM_INSTALL_CMD: &str = "npm install -g";
 pub fn install(repo_path: impl AsRef<Path>) {
     fs_util::find_file_in_dir(&repo_path, SUPPORTED_MANAGERS)
         .iter()
-        .map(parse_package_list)
-        .for_each()
+        .map(parse_package_manager)
+        .for_each(|manager| println!("Manager: {:?}", manager.info.name))
+}
+
+fn parse_package_manager(path: impl AsRef<Path>) -> PackageManager {
+    parse_package_list(path)
+        .map(PackageManager::from)
+        .expect("Failed to parse PackageManager")
 }
 
 fn parse_package_list(path: impl AsRef<Path>) -> HashMap<String, Package> {
@@ -32,18 +38,21 @@ impl<T: AsRef<Path>> From<(T, HashMap<String, Package>)> for PackageManager {
         match cfg_path.as_path().file_name() {
             "pkg.yaml" => Self {
                 info: ManagerInfo {
+                    name: String::from("Pkg"),
                     install_command: String::from(PKG_INSTALL_CMD),
                     package_map: package_map,
                 }
             },
             "cargo.yaml" => Self {
                 info: ManagerInfo {
+                    name: String::from("Cargo"),
                     install_command: String::from(CARGO_INSTALL_CMD)
                     package_map: package_map,
                 }
             },
             "npm.yaml" => Self {
                 info: ManagerInfo {
+                    name: String::from("Npm"),
                     install_command: String::from(NPM_INSTALL_CMD),
                     package_map: package_map,
                 }
@@ -56,6 +65,7 @@ impl<T: AsRef<Path>> From<(T, HashMap<String, Package>)> for PackageManager {
 
 #[derive(Debug)]
 struct ManagerInfo {
+    name: String,
     install_command: String,
     package_map: HashMap<String, Package>,
 }
