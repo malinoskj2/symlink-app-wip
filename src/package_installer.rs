@@ -1,76 +1,91 @@
-static SUPPORTED_MANAGERS: [&str; 3] = ["pkg.yaml", "cargo.yaml", "npm.yaml"];
-static PKG_INSTALL_CMD: &str = "pkg install -y";
-static CARGO_INSTALL_CMD: &str = "cargo install";
-static NPM_INSTALL_CMD: &str = "npm install -g";
+use super::fs_util;
+use std::collections::HashMap;
+use std::fs;
+use std::path::Path;
 
 pub fn install(repo_path: impl AsRef<Path>) {
-    fs_util::find_file_in_dir(&repo_path, SUPPORTED_MANAGERS)
-        .iter()
+    let config_names = vec![
+        "pkg.yaml".to_string(),
+        "cargo.yaml".to_string(),
+        "npm.yaml".to_string(),
+    ];
+
+    let config_paths = fs_util::find_file_in_dir(repo_path.as_ref(), config_names);
+
+    config_paths
+        .into_iter()
         .map(parse_package_manager)
-        .for_each(|manager| println!("Manager: {:?}", manager.info.name))
+        .for_each(|manager| println!("install_string: {}", manager.generate_install_string()));
 }
 
 fn parse_package_manager(path: impl AsRef<Path>) -> PackageManager {
-    parse_package_list(path)
-        .map(PackageManager::from)
-        .expect("Failed to parse PackageManager")
+    let packages = parse_packages(path.as_ref());
+    let parse_name: String = path
+        .as_ref()
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_owned()
+        .split('.')
+        .take(1)
+        .collect();
+
+    let cmd = get_cmds()
+        .get(parse_name.as_str())
+        .expect("failed to get")
+        .to_owned();
+
+    PackageManagerBuilder::default()
+        .name(parse_name)
+        .install_command(cmd.to_owned())
+        .packages(parse_packages(path.as_ref()))
+        .build()
+        .expect("failed to build manager")
 }
 
-fn parse_package_list(path: impl AsRef<Path>) -> HashMap<String, Package> {
-    fs::File::open(&cfg_map)
+fn parse_packages(path: impl AsRef<Path>) -> Vec<Package> {
+    fs::File::open(&path)
         .map(|file| {
-            let res_map: HashMap<String, Package> =
-                serde_yaml::from_reader(file).expect("failed to read cfg");
+            let res_map: Vec<Package> = serde_yaml::from_reader(file).expect("failed to read cfg");
             res_map
         })
         .expect("failed to read cfg")
 }
 
-#[derive(Debug)]
-enum PackageManager {
-    Pkg { info: ManagerInfo },
-    Cargo { info: ManagerInfo },
-    Npm { info: ManagerInfo },
+fn get_cmds() -> HashMap<String, String> {
+    let mut map = HashMap::with_capacity(3);
+    map.entry("pkg".to_string())
+        .or_insert_with(|| "pkg install -y".to_string());
+    map.entry("cargo".to_string())
+        .or_insert_with(|| "cargo install".to_string());
+    map.entry("npm".to_string())
+        .or_insert_with(|| "npm install -g".to_string());
+    map
 }
 
-impl<T: AsRef<Path>> From<(T, HashMap<String, Package>)> for PackageManager {
-    fn from((cfg_path, package_map): (T, HashMap<String, Package>)) -> Self {
-        match cfg_path.as_path().file_name() {
-            "pkg.yaml" => Self {
-                info: ManagerInfo {
-                    name: String::from("Pkg"),
-                    install_command: String::from(PKG_INSTALL_CMD),
-                    package_map: package_map,
-                }
-            },
-            "cargo.yaml" => Self {
-                info: ManagerInfo {
-                    name: String::from("Cargo"),
-                    install_command: String::from(CARGO_INSTALL_CMD)
-                    package_map: package_map,
-                }
-            },
-            "npm.yaml" => Self {
-                info: ManagerInfo {
-                    name: String::from("Npm"),
-                    install_command: String::from(NPM_INSTALL_CMD),
-                    package_map: package_map,
-                }
-            },
-            _ => panic!("failed to create PackageManager"),
-        }
+#[derive(Default, Builder, Debug)]
+#[builder(setter(into))]
+struct PackageManager {
+    name: String,
+    install_command: String,
+    packages: Vec<Package>,
+}
+
+impl PackageManager {
+    fn generate_install_string(&self) -> String {
+        let pack_list: String = self
+            .packages
+            .iter()
+            .map(|package| format!("{} ", package.name))
+            .collect();
+
+        format!("{} {}", self.install_command, pack_list)
     }
 }
 
-
-#[derive(Debug)]
-struct ManagerInfo {
-    name: String,
-    install_command: String,
-    package_map: HashMap<String, Package>,
-}
-
+#[derive(Debug, Serialize, Deserialize, Clone)]
 struct Package {
     name: String,
-    options: Option<Vector<String>>,
+    options: Option<Vec<String>>,
 }

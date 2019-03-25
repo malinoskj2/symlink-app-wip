@@ -1,8 +1,11 @@
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_yaml;
+#[macro_use]
+extern crate derive_builder;
 
 mod fs_util;
+pub mod package_installer;
 
 use std::collections::HashMap;
 use std::error::Error;
@@ -13,12 +16,13 @@ use std::io::Error as IOError;
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 use walkdir::{DirEntry, WalkDir};
+
 pub type DIResult<T> = Result<T, Box<Error>>;
 
 const CFG_MAP_NAME: &str = "config-map.yaml";
 
 pub fn install(repo_path: impl AsRef<Path>) {
-    fs_util::find_file_in_dir(&repo_path, &[CFG_MAP_NAME])
+    fs_util::find_file_in_dir(repo_path.as_ref(), vec![CFG_MAP_NAME.to_string()])
         .iter()
         .flat_map(|path: &PathBuf| parse_config_links(path))
         .map(|(key, config_link)| (key, expand_path(config_link, &repo_path)))
