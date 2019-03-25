@@ -1,3 +1,7 @@
+#[macro_use]
+extern crate serde_derive;
+extern crate serde_yaml;
+
 use std::error::Error;
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
@@ -16,11 +20,13 @@ pub fn find_config_map(repo_path: &Path) -> Vec<PathBuf> {
         .collect()
 }
 
+#[derive(Debug, Serialize, Deserialize)]
 enum CLMethod {
     link,
     copy,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
 struct ConfigLink {
     name: String,
     source: PathBuf,
