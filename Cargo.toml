@@ -5,6 +5,14 @@ authors = ["Jesse Malinosky <jesse@malinoskj2.dev>"]
 edition = "2018"
 description = "easily source and install dotfiles"
 
+[lib]
+name="lib_dot_installer"
+path = "src/lib.rs"
+
+[[bin]]
+name = "dot_installer"
+path = "src/main.rs"
 [dependencies]
+
 structopt = "0.2"
 walkdir = "2"
