@@ -12,6 +12,7 @@ path = "src/linker.rs"
 [[bin]]
 name = "dot_installer"
 path = "src/main.rs"
+
 [dependencies]
 
 structopt = "0.2"
@@ -20,3 +21,5 @@ walkdir = "2"
 serde = "1.0.89"
 serde_derive = "1.0.89"
 serde_yaml = "0.8.8"
+
+symlink = "0.1.0"
