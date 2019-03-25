@@ -18,7 +18,7 @@ pub type DIResult<T> = Result<T, Box<Error>>;
 const CFG_MAP_NAME: &str = "config-map.yaml";
 
 pub fn install(repo_path: impl AsRef<Path>) {
-    fs_util::find_file_in_dir(&repo_path, CFG_MAP_NAME)
+    fs_util::find_file_in_dir(&repo_path, &[CFG_MAP_NAME])
         .iter()
         .flat_map(|path: &PathBuf| parse_config_links(path))
         .map(|(key, config_link)| (key, expand_path(config_link, &repo_path)))
