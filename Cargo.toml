@@ -23,3 +23,4 @@ serde_derive = "1.0.89"
 serde_yaml = "0.8.8"
 
 symlink = "0.1.0"
+shellexpand = "1.0.0"

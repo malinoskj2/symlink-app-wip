@@ -14,15 +14,10 @@ struct Opt {
 }
 
 fn main() -> DIResult<()> {
-    let config_map_paths: HashMap<String, ConfigLink> = Opt::from_args()
+    Opt::from_args()
         .paths
         .into_iter()
-        .flat_map(|path: PathBuf| install(path.as_path()))
-        .collect();
-
-    config_map_paths
-        .iter()
-        .for_each(|path| println!("Link: {:?}", path));
+        .for_each(|path: PathBuf| install(path.as_path()));
 
     Ok(())
 }
