@@ -4,5 +4,7 @@ version = "0.1.0"
 authors = ["Jesse Malinosky <jesse@malinoskj2.dev>"]
 edition = "2018"
 description = "easily source and install dotfiles"
+
 [dependencies]
 structopt = "0.2"
+walkdir = "2"

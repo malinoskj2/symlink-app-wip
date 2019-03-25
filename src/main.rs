@@ -7,9 +7,9 @@ type DIResult<T> = Result<T, Box<Error>>;
 #[derive(StructOpt, Debug)]
 #[structopt()]
 struct Opt {
-    /// Files to process
+    /// Paths to config repos
     #[structopt(name = "", parse(from_os_str))]
-    files: Vec<PathBuf>,
+    paths: Vec<PathBuf>,
 }
 
 fn main() -> DIResult<()> {
