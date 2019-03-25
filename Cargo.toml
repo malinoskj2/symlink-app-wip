@@ -1,0 +1,7 @@
+[package]
+name = "dot_installer"
+version = "0.1.0"
+authors = ["Jesse Malinosky <jesse@malinoskj2.dev>"]
+edition = "2018"
+
+[dependencies]
