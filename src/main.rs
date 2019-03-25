@@ -1,10 +1,10 @@
 extern crate lib_dot_installer;
 
-use lib_dot_installer::{install, DIResult};
-
 use std::fmt::Error;
 use std::path::PathBuf;
 use structopt::StructOpt;
+
+use lib_dot_installer::{find_config_map, DIResult};
 
 #[derive(StructOpt, Debug)]
 #[structopt()]
@@ -17,7 +17,7 @@ fn main() -> DIResult<()> {
     let config_map_paths: Vec<PathBuf> = Opt::from_args()
         .paths
         .into_iter()
-        .flat_map(|path: PathBuf| install(path))
+        .flat_map(|path: PathBuf| find_config_map(path.as_ref()))
         .collect();
 
     config_map_paths
