@@ -1,10 +1,10 @@
 extern crate lib_dot_installer;
 
-use std::fmt::Error;
 use std::path::PathBuf;
 use structopt::StructOpt;
 
-use lib_dot_installer::{find_config_map, DIResult};
+use lib_dot_installer::{install, ConfigLink, DIResult};
+use std::collections::HashMap;
 
 #[derive(StructOpt, Debug)]
 #[structopt()]
@@ -14,15 +14,15 @@ struct Opt {
 }
 
 fn main() -> DIResult<()> {
-    let config_map_paths: Vec<PathBuf> = Opt::from_args()
+    let config_map_paths: HashMap<String, ConfigLink> = Opt::from_args()
         .paths
         .into_iter()
-        .flat_map(|path: PathBuf| find_config_map(path.as_ref()))
+        .flat_map(|path: PathBuf| install(path.as_path()))
         .collect();
 
     config_map_paths
         .iter()
-        .for_each(|path| println!("Path: {:?}", path));
+        .for_each(|path| println!("Link: {:?}", path));
 
     Ok(())
 }
