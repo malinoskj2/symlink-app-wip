@@ -2,6 +2,8 @@
 extern crate serde_derive;
 extern crate serde_yaml;
 
+mod fs_util;
+
 use std::collections::HashMap;
 use std::error::Error;
 use std::ffi::OsString;
@@ -11,27 +13,16 @@ use std::io::Error as IOError;
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 use walkdir::{DirEntry, WalkDir};
-
 pub type DIResult<T> = Result<T, Box<Error>>;
 
 const CFG_MAP_NAME: &str = "config-map.yaml";
 
 pub fn install(repo_path: impl AsRef<Path>) {
-    find_config_map(&repo_path)
+    fs_util::find_file_in_dir(&repo_path, CFG_MAP_NAME)
         .iter()
         .flat_map(|path: &PathBuf| parse_config_links(path))
         .map(|(key, config_link)| (key, expand_path(config_link, &repo_path)))
         .for_each(|(k, value)| value.execute());
-}
-
-fn find_config_map(repo_path: impl AsRef<Path>) -> Vec<PathBuf> {
-    println!("finding config map");
-    WalkDir::new(repo_path)
-        .into_iter()
-        .filter_map(|entry| entry.ok())
-        .filter(|entry| entry.file_name() == OsString::from(CFG_MAP_NAME))
-        .map(DirEntry::into_path)
-        .collect()
 }
 
 fn parse_config_links(cfg_map: impl AsRef<Path>) -> HashMap<String, ConfigLink> {
