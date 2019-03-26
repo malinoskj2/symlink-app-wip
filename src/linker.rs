@@ -3,6 +3,9 @@ extern crate serde_derive;
 extern crate serde_yaml;
 #[macro_use]
 extern crate derive_builder;
+#[macro_use]
+extern crate dotenv_codegen;
+extern crate dotenv;
 
 mod fs_util;
 pub mod package_installer;
@@ -85,5 +88,15 @@ impl ConfigLink {
     pub fn execute(self) {
         println!("link: {:?} -> {:?}", self.source, self.destination);
         symlink::symlink_file(self.source, self.destination).expect("failed to create symlink");
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_env() {
+        assert_eq!("test_value", dotenv!("TEST_ENV_PROPERTY"));
     }
 }

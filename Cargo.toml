@@ -27,3 +27,5 @@ shellexpand = "1.0.0"
 derive_builder = "0.7.1"
 
 subprocess = "0.1.18"
+dotenv = "0.13.0"
+dotenv_codegen = "0.11.0"
