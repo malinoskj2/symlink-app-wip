@@ -1,75 +1,65 @@
+use super::error::InstallerErr;
 use super::fs_util;
 use super::FailErr;
+use crate::fs_util::{ff_in_dir, find_file_in_dir};
 use dotenv::dotenv;
+use failure::Fail;
 use std::collections::HashMap;
 use std::env;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use subprocess::{Exec, ExitStatus, Redirection};
 
-pub fn install(repo_path: impl AsRef<Path>) {
-    let config_names = vec![
-        "pkg.yaml".to_string(),
-        "cargo.yaml".to_string(),
-        "npm.yaml".to_string(),
-    ];
+pub fn install(repo_path: impl AsRef<Path>) -> Result<(), FailErr> {
+    let manager_schemas = init_manager_schemas()?;
 
-    let config_paths = fs_util::find_file_in_dir(repo_path.as_ref(), config_names);
-
-    config_paths
+    let managers: Vec<PackageManager> = manager_schemas
         .into_iter()
-        .map(parse_package_manager)
-        .for_each(|manager| {
-            manager
-                .install_packages()
-                .expect("failed to install packages")
-        });
-}
-
-fn parse_package_manager(path: impl AsRef<Path>) -> PackageManager {
-    let packages = parse_packages(path.as_ref());
-    let parse_name: String = path
-        .as_ref()
-        .file_name()
-        .unwrap()
-        .to_str()
-        .unwrap()
-        .to_owned()
-        .split('.')
-        .take(1)
+        .filter_map(|schema| PackageManager::try_from_schema(repo_path.as_ref(), schema).ok())
         .collect();
 
-    let cmd = get_cmds()
-        .get(parse_name.as_str())
-        .expect("failed to get")
-        .to_owned();
+    managers
+        .iter()
+        .for_each(|manager| println!("Manager: {:?}", manager));
 
-    PackageManagerBuilder::default()
-        .name(parse_name)
-        .install_command(cmd.to_owned())
-        .packages(parse_packages(path.as_ref()))
+    Ok(())
+}
+
+fn init_manager_schemas() -> Result<Vec<ManagerSchema>, FailErr> {
+    let pkg = ManagerSchemaBuilder::default()
+        .name(String::from("Pkg"))
+        .install_command(dotenv!("PKG_INSTALL_COMMAND"))
+        .config_name(dotenv!("PKG_CONFIG_NAME"))
+        .privileged(dotenv!("PKG_PRIV") == "YES")
         .build()
-        .expect("failed to build manager")
+        .map_err(|_| InstallerErr::SchemaBuildError)?;
+
+    let cargo = ManagerSchemaBuilder::default()
+        .name(String::from("Cargo"))
+        .install_command(dotenv!("CARGO_INSTALL_COMMAND"))
+        .config_name(dotenv!("CARGO_CONFIG_NAME"))
+        .privileged(dotenv!("CARGO_PRIV") == "YES")
+        .build()
+        .map_err(|_| InstallerErr::SchemaBuildError)?;
+
+    let npm = ManagerSchemaBuilder::default()
+        .name(String::from("Npm"))
+        .install_command(dotenv!("NPM_INSTALL_COMMAND"))
+        .config_name(dotenv!("NPM_CONFIG_NAME"))
+        .privileged(dotenv!("NPM_PRIV") == "YES")
+        .build()
+        .map_err(|_| InstallerErr::SchemaBuildError)?;
+
+    Ok(vec![pkg, cargo, npm])
 }
 
-fn parse_packages(path: impl AsRef<Path>) -> Vec<Package> {
-    fs::File::open(&path)
-        .map(|file| {
-            let res_map: Vec<Package> = serde_yaml::from_reader(file).expect("failed to read cfg");
-            res_map
-        })
-        .expect("failed to read cfg")
-}
-
-fn get_cmds() -> HashMap<String, String> {
-    let mut map = HashMap::with_capacity(3);
-    map.entry("pkg".to_string())
-        .or_insert_with(|| "sudo pkg install -y".to_string());
-    map.entry("cargo".to_string())
-        .or_insert_with(|| "cargo install".to_string());
-    map.entry("npm".to_string())
-        .or_insert_with(|| "npm install -g".to_string());
-    map
+#[derive(Default, Builder, Debug)]
+#[builder(setter(into))]
+struct ManagerSchema {
+    name: String,
+    install_command: String,
+    config_name: String,
+    privileged: bool,
 }
 
 #[derive(Default, Builder, Debug)]
@@ -77,33 +67,70 @@ fn get_cmds() -> HashMap<String, String> {
 struct PackageManager {
     name: String,
     install_command: String,
-    packages: Vec<Package>,
+    config_name: String,
+    packages: Option<Vec<Package>>,
+    config_path: Option<PathBuf>,
+    root: bool,
 }
 
 impl PackageManager {
-    fn generate_install_string(&self) -> String {
-        let pack_list: String = self
-            .packages
-            .iter()
-            .map(|package| format!("{} ", package.name))
-            .collect();
+    fn generate_install_string(&self) -> Option<String> {
+        let list: Option<String> = self.packages.as_ref().map(|packages| {
+            packages
+                .iter()
+                .map(|p_name| format!("{:?} ", p_name))
+                .collect()
+        });
 
-        format!("{} {}", self.install_command, pack_list)
+        list.map(|pack_list| format!("{} {}", self.install_command, pack_list))
     }
 
     fn install_packages(&self) -> Result<(), FailErr> {
-        println!("Installing Packages for: {}", self.name);
+        let install_string = self
+            .generate_install_string()
+            .ok_or_else(|| InstallerErr::NoPackageInstallError)?;
 
-        println!("Install String");
-        let output = Exec::shell(self.generate_install_string())
+        let output = Exec::shell(install_string)
             .stdout(Redirection::Pipe)
             .stderr(Redirection::Merge)
-            .capture()?
+            .capture()
+            .map_err(|_| InstallerErr::ShellExecutionFail)?
             .stdout_str();
 
-        println!("{}", output);
-        println!("finished installing packages for: {}", self.name);
         Ok(())
+    }
+
+    fn try_from_schema(
+        path: impl AsRef<Path>,
+        schema: ManagerSchema,
+    ) -> Result<PackageManager, FailErr> {
+        let mut res_dir: Vec<PathBuf> =
+            find_file_in_dir(path.as_ref(), vec![schema.config_name.clone()])?;
+
+        let res_dir: PathBuf = res_dir.remove(0);
+        let packages = Self::parse_packages(res_dir.to_path_buf())?;
+
+        PackageManagerBuilder::default()
+            .name(schema.name)
+            .install_command(schema.install_command)
+            .config_name(schema.config_name)
+            .packages(packages)
+            .config_path(res_dir)
+            .root(schema.privileged)
+            .build()
+            .map_err(|_| InstallerErr::SchemaBuildError)
+            .map(Ok)?
+    }
+
+    fn parse_packages(cfg_map: impl AsRef<Path>) -> Result<Vec<Package>, FailErr> {
+        Ok(fs::File::open(&cfg_map)
+            .map_err(|_| InstallerErr::NoPackageInstallError)
+            .map(|file| {
+                let res_map: Vec<Package> =
+                    serde_yaml::from_reader(file).expect("failed to read cfg");
+                res_map
+            })
+            .expect("couldnt parse packages"))
     }
 }
 
@@ -111,4 +138,21 @@ impl PackageManager {
 struct Package {
     name: String,
     options: Option<Vec<String>>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_env() -> Result<(), FailErr> {
+        let schemas = init_manager_schemas()?;
+
+        assert_eq!(3, schemas.len());
+        schemas.iter().for_each(|schema| {
+            assert!(schema.install_command.len() > 0);
+            assert!(schema.config_name.len() > 0);
+        });
+        Ok(())
+    }
 }

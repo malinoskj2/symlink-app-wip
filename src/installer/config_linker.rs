@@ -1,4 +1,7 @@
+use super::error::InstallerErr;
 use super::fs_util;
+use crate::FailErr;
+use failure::Fail;
 use std::collections::HashMap;
 use std::error::Error;
 use std::ffi::OsString;
@@ -9,14 +12,20 @@ use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 use walkdir::{DirEntry, WalkDir};
 
-const CFG_MAP_NAME: &str = "config-map.yaml";
+const CONFIG_MAP_NAME: &str = dotenv!("CONFIG_MAP_NAME");
 
-pub fn install(repo_path: impl AsRef<Path>) {
-    fs_util::find_file_in_dir(repo_path.as_ref(), vec![CFG_MAP_NAME.to_string()])
-        .iter()
-        .flat_map(|path: &PathBuf| parse_config_links(path))
-        .map(|(key, config_link)| (key, expand_path(config_link, &repo_path)))
-        .for_each(|(k, value)| value.execute());
+pub fn install(repo_path: impl AsRef<Path>) -> Result<(), FailErr> {
+    let cfg_map_paths =
+        fs_util::find_file_in_dir(repo_path.as_ref(), vec![CONFIG_MAP_NAME.to_string()])?;
+
+    let res: Vec<()> = cfg_map_paths
+        .into_iter()
+        .flat_map(|path: PathBuf| parse_config_links(path))
+        .map(|(key, cfg_link)| (key, expand_path(cfg_link, &repo_path)))
+        .filter_map(|(k, value)| value.execute().ok())
+        .collect();
+
+    Ok(())
 }
 
 fn parse_config_links(cfg_map: impl AsRef<Path>) -> HashMap<String, ConfigLink> {
@@ -72,8 +81,11 @@ pub struct ConfigLink {
 }
 
 impl ConfigLink {
-    pub fn execute(self) {
+    pub fn execute(self) -> Result<(), FailErr> {
         println!("link: {:?} -> {:?}", self.source, self.destination);
-        symlink::symlink_file(self.source, self.destination).expect("failed to create symlink");
+
+        symlink::symlink_file(self.source, self.destination)
+            .map_err(|_| InstallerErr::SymLinkFail)
+            .map(Ok)?
     }
 }

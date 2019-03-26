@@ -10,9 +10,13 @@ extern crate dotenv;
 #[macro_use]
 extern crate failure_derive;
 
+#[macro_use]
+extern crate lazy_static;
+
 pub use failure::Error as FailErr;
 
 pub mod config_linker;
+mod error;
 mod fs_util;
 pub mod package_installer;
 
