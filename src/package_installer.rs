@@ -1,7 +1,9 @@
 use super::fs_util;
+use crate::DIResult;
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
+use subprocess::{Exec, ExitStatus, Redirection};
 
 pub fn install(repo_path: impl AsRef<Path>) {
     let config_names = vec![
@@ -15,7 +17,11 @@ pub fn install(repo_path: impl AsRef<Path>) {
     config_paths
         .into_iter()
         .map(parse_package_manager)
-        .for_each(|manager| println!("install_string: {}", manager.generate_install_string()));
+        .for_each(|manager| {
+            manager
+                .install_packages()
+                .expect("failed to install packages")
+        });
 }
 
 fn parse_package_manager(path: impl AsRef<Path>) -> PackageManager {
@@ -56,7 +62,7 @@ fn parse_packages(path: impl AsRef<Path>) -> Vec<Package> {
 fn get_cmds() -> HashMap<String, String> {
     let mut map = HashMap::with_capacity(3);
     map.entry("pkg".to_string())
-        .or_insert_with(|| "pkg install -y".to_string());
+        .or_insert_with(|| "sudo pkg install -y".to_string());
     map.entry("cargo".to_string())
         .or_insert_with(|| "cargo install".to_string());
     map.entry("npm".to_string())
@@ -81,6 +87,21 @@ impl PackageManager {
             .collect();
 
         format!("{} {}", self.install_command, pack_list)
+    }
+
+    fn install_packages(&self) -> DIResult<()> {
+        println!("Installing Packages for: {}", self.name);
+
+        println!("Install String");
+        let output = Exec::shell(self.generate_install_string())
+            .stdout(Redirection::Pipe)
+            .stderr(Redirection::Merge)
+            .capture()?
+            .stdout_str();
+
+        println!("{}", output);
+        println!("finished installing packages for: {}", self.name);
+        Ok(())
     }
 }
 
