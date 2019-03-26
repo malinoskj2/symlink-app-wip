@@ -92,12 +92,19 @@ impl PackageManager {
             .generate_install_string()
             .ok_or_else(|| InstallerErr::NoPackageInstallError)?;
 
+        println!("Installing Packages via: {}", self.name);
         let output = Exec::shell(install_string)
             .stdout(Redirection::Pipe)
             .stderr(Redirection::Merge)
             .capture()
             .map_err(|_| InstallerErr::ShellExecutionFail)?
             .stdout_str();
+
+        println!("{}", output);
+        println!(
+            "Finished installing: {}",
+            self.packages.as_ref().unwrap().len()
+        );
 
         Ok(())
     }
