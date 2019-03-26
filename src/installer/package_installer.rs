@@ -20,7 +20,7 @@ pub fn install(repo_path: impl AsRef<Path>) -> Result<(), FailErr> {
 
     managers
         .iter()
-        .for_each(|manager| println!("Manager: {:?}", manager));
+        .for_each(|manager| println!("Manager: {:?}", manager.generate_install_string().unwrap()));
 
     Ok(())
 }
@@ -78,7 +78,7 @@ impl PackageManager {
         let list: Option<String> = self.packages.as_ref().map(|packages| {
             packages
                 .iter()
-                .map(|p_name| format!("{:?} ", p_name))
+                .map(|p| format!("{} ", p.name.as_str()))
                 .collect()
         });
 
