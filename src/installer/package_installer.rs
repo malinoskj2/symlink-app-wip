@@ -82,7 +82,9 @@ impl PackageManager {
                 .collect()
         });
 
-        list.map(|pack_list| format!("{} {}", self.install_command, pack_list))
+        let priv_string = if self.root { "sudo " } else { "" };
+
+        list.map(|pack_list| format!("{}{} {}", priv_string, self.install_command, pack_list))
     }
 
     fn install_packages(&self) -> Result<(), FailErr> {
