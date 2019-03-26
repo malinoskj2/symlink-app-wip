@@ -3,7 +3,7 @@ extern crate lib_dot_installer;
 use std::path::PathBuf;
 use structopt::StructOpt;
 
-use lib_dot_installer::DIResult;
+use lib_dot_installer::FailErr;
 use std::collections::HashMap;
 
 #[derive(StructOpt, Debug)]
@@ -13,7 +13,7 @@ struct Opt {
     paths: Vec<PathBuf>,
 }
 
-fn main() -> DIResult<()> {
+fn main() -> Result<(), FailErr> {
     Opt::from_args()
         .paths
         .into_iter()

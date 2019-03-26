@@ -1,5 +1,5 @@
 use super::fs_util;
-use crate::DIResult;
+use super::FailErr;
 use dotenv::dotenv;
 use std::collections::HashMap;
 use std::env;
@@ -91,7 +91,7 @@ impl PackageManager {
         format!("{} {}", self.install_command, pack_list)
     }
 
-    fn install_packages(&self) -> DIResult<()> {
+    fn install_packages(&self) -> Result<(), FailErr> {
         println!("Installing Packages for: {}", self.name);
 
         println!("Install String");

@@ -7,13 +7,14 @@ extern crate derive_builder;
 extern crate dotenv_codegen;
 extern crate dotenv;
 
-use std::error::Error;
+#[macro_use]
+extern crate failure_derive;
+
+pub use failure::Error as FailErr;
 
 pub mod config_linker;
 mod fs_util;
 pub mod package_installer;
-
-pub type DIResult<T> = Result<T, Box<Error>>;
 
 #[cfg(test)]
 mod tests {
