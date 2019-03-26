@@ -18,9 +18,9 @@ pub fn install(repo_path: impl AsRef<Path>) -> Result<(), FailErr> {
         .filter_map(|schema| PackageManager::try_from_schema(repo_path.as_ref(), schema).ok())
         .collect();
 
-    managers
-        .iter()
-        .for_each(|manager| println!("Manager: {:?}", manager.generate_install_string().unwrap()));
+    for manager in managers.iter() {
+        manager.install_packages()?;
+    }
 
     Ok(())
 }
