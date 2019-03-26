@@ -1,15 +1,4 @@
-#[macro_use]
-extern crate serde_derive;
-extern crate serde_yaml;
-#[macro_use]
-extern crate derive_builder;
-#[macro_use]
-extern crate dotenv_codegen;
-extern crate dotenv;
-
-mod fs_util;
-pub mod package_installer;
-
+use super::fs_util;
 use std::collections::HashMap;
 use std::error::Error;
 use std::ffi::OsString;
@@ -19,8 +8,6 @@ use std::io::Error as IOError;
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 use walkdir::{DirEntry, WalkDir};
-
-pub type DIResult<T> = Result<T, Box<Error>>;
 
 const CFG_MAP_NAME: &str = "config-map.yaml";
 
@@ -88,15 +75,5 @@ impl ConfigLink {
     pub fn execute(self) {
         println!("link: {:?} -> {:?}", self.source, self.destination);
         symlink::symlink_file(self.source, self.destination).expect("failed to create symlink");
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_env() {
-        assert_eq!("test_value", dotenv!("TEST_ENV_PROPERTY"));
     }
 }

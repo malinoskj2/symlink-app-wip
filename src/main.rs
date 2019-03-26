@@ -3,7 +3,7 @@ extern crate lib_dot_installer;
 use std::path::PathBuf;
 use structopt::StructOpt;
 
-use lib_dot_installer::{ConfigLink, DIResult};
+use lib_dot_installer::DIResult;
 use std::collections::HashMap;
 
 #[derive(StructOpt, Debug)]

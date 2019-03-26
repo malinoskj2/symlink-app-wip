@@ -7,7 +7,7 @@ description = "easily source and install dotfiles"
 
 [lib]
 name="lib_dot_installer"
-path = "src/linker.rs"
+path = "src/installer/mod.rs"
 
 [[bin]]
 name = "dot_installer"
