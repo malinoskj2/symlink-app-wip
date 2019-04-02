@@ -12,11 +12,8 @@ use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 use walkdir::{DirEntry, WalkDir};
 
-const CONFIG_MAP_NAME: &str = dotenv!("CONFIG_MAP_NAME");
-
-pub fn install(repo_path: impl AsRef<Path>) -> Result<(), FailErr> {
-    let cfg_map_paths =
-        fs_util::find_file_in_dir(repo_path.as_ref(), vec![CONFIG_MAP_NAME.to_string()])?;
+pub fn install(repo_path: impl AsRef<Path>, cfg_name: &str) -> Result<(), FailErr> {
+    let cfg_map_paths = fs_util::find_file_in_dir(repo_path.as_ref(), vec![cfg_name.to_string()])?;
 
     let res: Vec<()> = cfg_map_paths
         .into_iter()
