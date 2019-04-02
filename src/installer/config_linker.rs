@@ -94,6 +94,7 @@ pub struct ConfigLink {
 
 impl Linkable for ConfigLink {
     fn create_link(&self) -> Result<(), FailErr> {
+        debug!("\nLinked: {:?} -> {:?}", &self.source, &self.destination);
         symlink::symlink_file(&self.source, &self.destination)
             .map_err(|_| InstallerErr::SymLinkFail)
             .map(Ok)?

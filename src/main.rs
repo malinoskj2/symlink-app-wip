@@ -1,4 +1,7 @@
 extern crate lib_yamlink;
+#[macro_use]
+extern crate log;
+extern crate env_logger;
 
 use std::path::PathBuf;
 
@@ -22,6 +25,10 @@ struct Opt {
 }
 
 fn main() -> Result<(), FailErr> {
+    env_logger::init();
+
+    info!("starting");
+
     let Opt {
         directories,
         config_names,
@@ -29,6 +36,8 @@ fn main() -> Result<(), FailErr> {
         tags,
         allow_privileged,
     } = Opt::from_args();
+
+    debug!("op: \n{:#?}", Opt::from_args());
 
     directories.into_iter().for_each(|path| {
         lib_yamlink::config_linker::install(
