@@ -1,16 +1,16 @@
 [package]
-name = "yamlinker"
+name = "yamlink"
 version = "0.2.0"
 authors = ["Jesse Malinosky <jesse@malinoskj2.dev>"]
 edition = "2018"
-description = "make sym links and deploy files via yaml"
+description = "make sym links and deploy files with yaml"
 
 [lib]
-name="lib_dot_installer"
+name="lib_yamlink"
 path = "src/installer/mod.rs"
 
 [[bin]]
-name = "dot_installer"
+name = "yamlink"
 path = "src/main.rs"
 
 [dependencies]
@@ -23,9 +23,8 @@ serde_derive = "1.0.89"
 serde_yaml = "0.8.8"
 
 symlink = "0.1.0"
-shellexpand = "1.0.0"
-derive_builder = "0.7.1"
 
 failure = "0.1.5"
 failure_derive = "0.1.5"
 
+indicatif = "0.11.0"

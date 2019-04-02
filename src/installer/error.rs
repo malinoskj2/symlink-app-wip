@@ -7,14 +7,6 @@ pub enum InstallerErr {
     StringConversionFail,
     #[fail(display = "Failed to create symlink")]
     SymLinkFail,
-    #[fail(display = "Failed to create manager schema")]
-    SchemaBuildError,
     #[fail(display = "yaml parse error")]
     YamlParseFail,
-    #[fail(display = "tried to execute install with no packages")]
-    NoPackageInstallError,
-    #[fail(display = "shell execution error")]
-    ShellExecutionFail,
-    #[fail(display = "Could not find config-map")]
-    NoConfigFound,
 }
