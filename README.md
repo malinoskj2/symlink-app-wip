@@ -1,4 +1,4 @@
-# *yamlinker*
+# *yamlink*
 
 WIP
 
