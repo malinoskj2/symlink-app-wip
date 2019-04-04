@@ -21,7 +21,7 @@ pub fn install<T: AsRef<str>, U: AsRef<Path>>(
             dir_result.as_ref().and_then(|dir| {
                 let res_map: Result<ConfigMap<ConfigLink>, &InstallerErr> =
                     parse_config_map(dir.path()).map_err(|_| &InstallerErr::NoPath);
-
+                debug!("parsed: {:#?}", res_map);
                 res_map
             })
         })
@@ -43,9 +43,9 @@ fn apply_tag_filter<T: AsRef<str>, U: Linkable>(cfg_map: &ConfigMap<U>, tags: &[
 fn parse_config_map<T: DeserializeOwned + Linkable, U: AsRef<Path>>(
     cfg_map: U,
 ) -> Result<ConfigMap<T>, FailErr> {
+    debug!("parsing:{:?} ", cfg_map.as_ref());
     let file = fs::File::open(&cfg_map)?;
     let cfg_map2 = serde_yaml::from_reader(file)?;
-
     Ok(cfg_map2)
 }
 
