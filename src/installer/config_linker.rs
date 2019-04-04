@@ -8,6 +8,7 @@ use super::{fs_util, option::Opt};
 use indicatif::{ProgressBar, ProgressStyle};
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
+use walkdir::DirEntry;
 
 fn install<T: AsRef<str>, U: AsRef<Path>>(
     repo_path: U,
@@ -15,20 +16,19 @@ fn install<T: AsRef<str>, U: AsRef<Path>>(
     sub_directories: &[U],
     tags: &[T],
 ) -> Result<(), FailErr> {
-    fs_util::find_file_in_dir(repo_path.into(), cfg_names.into(), sub_directories.into())
-        .iter()
-        .flat_map(|dir_result| {
-            dir_result.as_ref().and_then(|dir| {
-                let res_map: Result<ConfigMap<ConfigLink>, &InstallerErr> =
-                    parse_config_map(dir.path()).map_err(|_| &InstallerErr::YamlParseFail);
-                debug!("parsed: {:#?}", res_map);
-                res_map
-            })
-        })
-        .filter(|cfg_map_res| apply_tag_filter(&cfg_map_res, tags))
-        .fold(Ok(()), |_, map| map.create_links());
+    let cfg_paths =
+        fs_util::find_file_in_dir(repo_path.into(), cfg_names.into(), sub_directories.into())?;
+    let cfg_paths: Vec<DirEntry> = cfg_paths;
 
-    Ok(())
+    cfg_paths
+        .into_iter()
+        .flat_map(|entry| {
+            let res: Result<ConfigMap<ConfigLink>, FailErr> = parse_config_map(entry.path());
+            res
+        })
+        .filter(|cfg_map| apply_tag_filter(&cfg_map, tags))
+        .map(|cfg_map| cfg_map.create_links())
+        .collect::<Result<(), FailErr>>()
 }
 
 pub fn install_opts(opts: Opt) -> Result<(), FailErr> {
@@ -112,9 +112,10 @@ pub struct ConfigLink {
 impl Linkable for ConfigLink {
     fn create_link(&self) -> Result<(), FailErr> {
         debug!("\nLinked: {:?} -> {:?}", &self.source, &self.destination);
-        symlink::symlink_file(&self.source, &self.destination)
-            .map_err(|_| InstallerErr::SymLinkFail)
-            .map(Ok)?
+        let link_res: Result<(), std::io::Error> =
+            symlink::symlink_file(&self.source, &self.destination).map_err(|err| err.into());
+
+        Ok(link_res?)
     }
 
     fn method(&self) -> &CLMethod {

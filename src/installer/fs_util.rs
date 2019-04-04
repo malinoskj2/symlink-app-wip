@@ -11,14 +11,13 @@ pub fn find_file_in_dir<T: AsRef<str>, U: AsRef<Path>>(
     dir_path: U,
     comparator: &[T],
     sub_directories: &[U],
-) -> Vec<Result<DirEntry, InstallerErr>> {
+) -> Result<Vec<DirEntry>, walkdir::Error> {
     WalkDir::new(dir_path)
         .into_iter()
         .filter_entry(|entry| compare_paths(entry.path(), sub_directories))
         .filter(|entry| entry.is_ok())
         .filter(|entry| check_entry(&entry, comparator).unwrap())
-        .map(|dir_result| dir_result.map_err(|_| InstallerErr::NoPath))
-        .collect()
+        .collect::<Result<Vec<DirEntry>, walkdir::Error>>()
 }
 
 fn compare_paths<U: AsRef<Path>>(walked: &Path, sub_directories: &[U]) -> bool {
