@@ -1,5 +1,15 @@
 # *yamlink*
+Conveniently setup symlinks with yaml  
+* good for dotfiles + general system configuration  
 
-WIP
+WIP  
+this is alpha software.
 
-Conveniently setup symlinks with yaml.
+cargo install --git https://github.com/malinoskj2/yamlink
+
+
+### Todo
+* multithreading
+* allow for link removal
+* display errors nicely
+* handle linkig/copying as root better
