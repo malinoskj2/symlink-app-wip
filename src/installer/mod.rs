@@ -14,6 +14,7 @@ pub use failure::Error as FailErr;
 pub mod config_linker;
 mod error;
 mod fs_util;
+pub mod option;
 
 #[cfg(test)]
 mod tests {

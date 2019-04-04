@@ -4,12 +4,12 @@ use std::path::{Path, PathBuf};
 use crate::FailErr;
 
 use super::error::InstallerErr;
-use super::fs_util;
+use super::{fs_util, option::Opt};
 use indicatif::{ProgressBar, ProgressStyle};
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
 
-pub fn install<T: AsRef<str>, U: AsRef<Path>>(
+fn install<T: AsRef<str>, U: AsRef<Path>>(
     repo_path: U,
     cfg_names: &[T],
     sub_directories: &[U],
@@ -27,6 +27,23 @@ pub fn install<T: AsRef<str>, U: AsRef<Path>>(
         })
         .filter(|cfg_map_res| apply_tag_filter(&cfg_map_res, tags))
         .fold(Ok(()), |_, map| map.create_links());
+
+    Ok(())
+}
+
+pub fn install_opts(opts: Opt) -> Result<(), FailErr> {
+    let Opt {
+        directories,
+        config_names,
+        sub_directories,
+        tags,
+        allow_privileged,
+    } = opts;
+
+    let res: Result<(), FailErr> = directories
+        .into_iter()
+        .map(|path| install(path, config_names.as_ref(), sub_directories.as_ref(), &tags))
+        .collect();
 
     Ok(())
 }
