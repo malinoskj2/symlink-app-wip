@@ -20,7 +20,7 @@ pub fn install<T: AsRef<str>, U: AsRef<Path>>(
         .flat_map(|dir_result| {
             dir_result.as_ref().and_then(|dir| {
                 let res_map: Result<ConfigMap<ConfigLink>, &InstallerErr> =
-                    parse_config_map(dir.path()).map_err(|_| &InstallerErr::NoPath);
+                    parse_config_map(dir.path()).map_err(|_| &InstallerErr::YamlParseFail);
                 debug!("parsed: {:#?}", res_map);
                 res_map
             })
