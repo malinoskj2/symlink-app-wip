@@ -12,4 +12,4 @@ cargo install --git https://github.com/malinoskj2/yamlink
 * multithreading
 * allow for link removal
 * display errors nicely
-* handle linkig/copying as root better
+* handle linking/copying as root better
