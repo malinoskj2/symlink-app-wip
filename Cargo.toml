@@ -14,17 +14,14 @@ name = "yamlink"
 path = "src/main.rs"
 
 [dependencies]
-
 log = "0.4.0"
 env_logger = "0.6.1"
-
 structopt = "0.2"
-
 serde = "1.0.89"
 serde_derive = "1.0.89"
 serde_yaml = "0.8.8"
-
 symlink = "0.1.0"
-
 failure = "0.1.5"
 failure_derive = "0.1.5"
+hostname = "^0.1"
+users = "0.9.1"
