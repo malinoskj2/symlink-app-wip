@@ -6,7 +6,7 @@ use structopt::StructOpt;
 pub struct Opt {
     #[structopt(name = "DIRECTORY", parse(from_os_str))]
     pub directories: Vec<PathBuf>,
-    #[structopt(short = "c", long = "config-name", default_value = "link-map.yaml")]
+    #[structopt(short = "c", long = "config-name", default_value = "links.yml")]
     pub config_names: Vec<String>,
     #[structopt(short = "d", long = "specify-subdirs")]
     pub sub_directories: Vec<PathBuf>,
