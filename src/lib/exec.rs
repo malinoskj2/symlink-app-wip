@@ -27,11 +27,11 @@ pub fn init(opt: Opt) -> Result<(), FailErr> {
                     .map_or_else(|| false, |res_map| filter_tags(&tags, &res_map))
             }
         })
-        .inspect(|res| match res.as_ref().is_ok() {
-            true => handle_ok(res.as_ref().unwrap()),
-            false => handle_err(res.as_ref().unwrap_err())
+        .inspect(|res| match res.as_ref() {
+            Ok(res) => handle_ok(res),
+            Err(err)=> handle_err(err)
         })
-        .collect::<Result<Vec<ConfigMap<ConfigLink>>, FailErr>>();
+        .collect::<Result<Vec<Linkfile<LinkData>>, FailErr>>();
 
     let res = res?;
     let res2: Vec<Result<(), FailErr>> = res.into_iter()
@@ -41,8 +41,8 @@ pub fn init(opt: Opt) -> Result<(), FailErr> {
     Ok(())
 }
 
-fn handle_ok(res: &ConfigMap<ConfigLink>) {
-    info!("the map is ok");
+fn handle_ok(res: &Linkfile<LinkData>) {
+    info!("the file is ok");
     info!("parsed: {:#?}", res);
 }
 
@@ -52,7 +52,7 @@ fn handle_err(err: &FailErr) {
 
 fn parse_config_map2<U: AsRef<Path>>(
     cfg_map: U,
-) -> Result<ConfigMap<ConfigLink>, FailErr> {
+) -> Result<Linkfile<LinkData>, FailErr> {
     debug!("parsing:{:?} ", cfg_map.as_ref());
     let file = fs::File::open(&cfg_map)?;
     let cfg_map2 = serde_yaml::from_reader(file)?;

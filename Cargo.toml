@@ -7,7 +7,7 @@ description = "make sym links and deploy files with yaml"
 
 [lib]
 name="lib_yamlink"
-path = "src/installer/mod.rs"
+path = "src/lib/mod.rs"
 
 [[bin]]
 name = "yamlink"

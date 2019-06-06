@@ -7,12 +7,12 @@ const DEFAULT_VEC_TAG_CAP: usize = 4;
 const DEFAULT_VEC_LINK_CAP: usize = 32;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ConfigMap<ConfigLink> {
+pub struct Linkfile<ConfigLink> {
     tags: Vec<String>,
     links: Vec<ConfigLink>,
 }
 
-impl ConfigMap<ConfigLink> {
+impl Linkfile<LinkData> {
     pub fn contains_tag(&self, target_tag: &str) -> bool {
         self.tags.iter()
             .any(|tag| tag == target_tag)
@@ -25,7 +25,7 @@ impl ConfigMap<ConfigLink> {
     }
 }
 
-impl Default for ConfigMap<ConfigLink> {
+impl Default for Linkfile<LinkData> {
     fn default() -> Self {
         Self {
             tags: Vec::with_capacity(DEFAULT_VEC_TAG_CAP),
@@ -43,11 +43,11 @@ enum CLMethod {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct CLOptions {
+struct LinkOptions {
     destructive: bool
 }
 
-impl Default for CLOptions {
+impl Default for LinkOptions {
     fn default() -> Self {
         Self {
             destructive: true
@@ -56,12 +56,12 @@ impl Default for CLOptions {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct CLFilters {
+struct LinkConditions {
     host: Option<String>,
     user: Option<String>,
 }
 
-impl CLFilters {
+impl LinkConditions {
     fn filter_host(&self) -> bool {
         if self.host.as_ref().is_none() {
             true
@@ -82,7 +82,7 @@ impl CLFilters {
     }
 }
 
-impl Default for CLFilters {
+impl Default for LinkConditions {
     fn default() -> Self {
         Self {
             host: None,
@@ -92,22 +92,22 @@ impl Default for CLFilters {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ConfigLink {
+pub struct LinkData {
     source: PathBuf,
     destination: PathBuf,
-    #[serde(default = "ConfigLink::method_default")]
+    #[serde(default = "LinkData::method_default")]
     method: CLMethod,
-    #[serde(default = "CLOptions::default")]
-    options: CLOptions,
-    #[serde(default = "CLFilters::default")]
-    filters: CLFilters,
+    #[serde(default = "LinkOptions::default")]
+    options: LinkOptions,
+    #[serde(default = "LinkConditions::default")]
+    filters: LinkConditions,
 }
 
-impl ConfigLink {
+impl LinkData {
     fn method_default() -> CLMethod { CLMethod::Link }
 }
 
-impl ConfigLink {
+impl LinkData {
     fn create_link(&self) -> Result<(), FailErr> {
         debug!("\nLinked: {:?} -> {:?}", &self.source, &self.destination);
 
