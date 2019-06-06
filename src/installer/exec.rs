@@ -50,15 +50,6 @@ fn handle_err(err: &FailErr) {
     info!("the map has an error:\n{:#?}", err);
 }
 
-fn parse_config_map<U: AsRef<Path>>(
-    cfg_map: U,
-) -> Result<ConfigMap<ConfigLink>, FailErr> {
-    debug!("parsing:{:?} ", cfg_map.as_ref());
-    let file = fs::File::open(&cfg_map)?;
-    let cfg_map2 = serde_yaml::from_reader(file)?;
-    Ok(cfg_map2)
-}
-
 fn parse_config_map2<U: AsRef<Path>>(
     cfg_map: U,
 ) -> Result<ConfigMap<ConfigLink>, FailErr> {
