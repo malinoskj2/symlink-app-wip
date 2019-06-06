@@ -11,10 +11,11 @@ extern crate failure_derive;
 
 pub use failure::Error as FailErr;
 
-pub mod config_linker;
 mod error;
-mod fs_util;
+pub mod exec;
 pub mod option;
+mod filters;
+mod types;
 
 #[cfg(test)]
 mod tests {

@@ -3,7 +3,7 @@ extern crate lib_yamlink;
 extern crate log;
 extern crate env_logger;
 
-use lib_yamlink::config_linker::install_opts;
+use lib_yamlink::exec;
 use lib_yamlink::option::Opt;
 use lib_yamlink::FailErr;
 use std::path::PathBuf;
@@ -11,11 +11,12 @@ use structopt::StructOpt;
 
 fn main() -> Result<(), FailErr> {
     env_logger::init();
-
-    info!("starting");
+    info!("starting2");
     debug!("op: \n{:#?}", Opt::from_args());
 
-    install_opts(Opt::from_args())
+    let Opt { config_files, tags } = Opt::from_args();
+
+    exec::init(Opt::from_args())
         .map(|_| ())
-        .map_err(|err| err.into())
+        .map_err(|err: FailErr| err.into())
 }
