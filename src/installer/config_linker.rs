@@ -5,7 +5,6 @@ use crate::FailErr;
 
 use super::error::InstallerErr;
 use super::{fs_util, option::Opt};
-use indicatif::{ProgressBar, ProgressStyle};
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use walkdir::DirEntry;
@@ -78,20 +77,14 @@ impl<T: Linkable> ConfigMap<T> {
     }
 
     fn create_links(&self) -> Result<(), FailErr> {
-        let mut bar = ProgressBar::new((self.links.len()) as u64);
-        bar.set_style(
-            ProgressStyle::default_bar()
-                .template("[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}")
-                .progress_chars("##-"),
-        );
 
-        let res = bar
-            .wrap_iter(self.links.iter().filter(|link| match link.method() {
+        let res =
+            self.links.iter().filter(|link| match link.method() {
                 CLMethod::link => true,
                 CLMethod::copy => false,
-            }))
+            })
             .fold(Ok(()), |_, link_result| link_result.create_link());
-        bar.finish();
+        
         res
     }
 }
