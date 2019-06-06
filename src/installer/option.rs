@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
-#[structopt()]
+#[structopt(name = "tbd", about = "make sym links easily.", author = "" )]
 pub struct Opt {
     #[structopt(name = "DIRECTORY", parse(from_os_str))]
     pub directories: Vec<PathBuf>,
