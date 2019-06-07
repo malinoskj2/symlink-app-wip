@@ -1,7 +1,7 @@
-use std::path::{PathBuf, Path};
 use crate::{option::Opt, FailErr};
-use std::fs;
 use std::ffi::OsString;
+use std::fs;
+use std::path::{Path, PathBuf};
 
 const DEFAULT_VEC_TAG_CAP: usize = 4;
 const DEFAULT_VEC_LINK_CAP: usize = 32;
@@ -14,14 +14,11 @@ pub struct Linkfile<ConfigLink> {
 
 impl Linkfile<LinkData> {
     pub fn contains_tag(&self, target_tag: &str) -> bool {
-        self.tags.iter()
-            .any(|tag| tag == target_tag)
+        self.tags.iter().any(|tag| tag == target_tag)
     }
 
     pub fn create_links(&self) -> Vec<Result<(), FailErr>> {
-        self.links.iter()
-            .map(|link| link.create_link())
-            .collect()
+        self.links.iter().map(|link| link.create_link()).collect()
     }
 }
 
@@ -44,14 +41,12 @@ enum CLMethod {
 
 #[derive(Debug, Serialize, Deserialize)]
 struct LinkOptions {
-    destructive: bool
+    destructive: bool,
 }
 
 impl Default for LinkOptions {
     fn default() -> Self {
-        Self {
-            destructive: true
-        }
+        Self { destructive: true }
     }
 }
 
@@ -104,7 +99,9 @@ pub struct LinkData {
 }
 
 impl LinkData {
-    fn method_default() -> CLMethod { CLMethod::Link }
+    fn method_default() -> CLMethod {
+        CLMethod::Link
+    }
 }
 
 impl LinkData {
@@ -117,8 +114,7 @@ impl LinkData {
 
         if self.filters.filter_host() && self.filters.filter_user() {
             let link_res: Result<(), std::io::Error> =
-                symlink::symlink_file(&self.source, &self.destination)
-                    .map_err(|err| err.into());
+                symlink::symlink_file(&self.source, &self.destination).map_err(|err| err.into());
             Ok(link_res?)
         } else {
             Ok(())

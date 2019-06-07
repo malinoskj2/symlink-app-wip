@@ -13,8 +13,8 @@ pub use failure::Error as FailErr;
 
 mod error;
 pub mod exec;
-pub mod option;
 mod filters;
+pub mod option;
 mod types;
 
 #[cfg(test)]
