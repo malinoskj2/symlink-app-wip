@@ -1,7 +1,7 @@
-use crate::{option::Opt, FailErr};
-use std::ffi::OsString;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
+
+use crate::FailErr;
 
 const DEFAULT_VEC_TAG_CAP: usize = 4;
 const DEFAULT_VEC_LINK_CAP: usize = 32;
@@ -26,13 +26,13 @@ impl Default for Linkfile<LinkData> {
     fn default() -> Self {
         Self {
             tags: Vec::with_capacity(DEFAULT_VEC_TAG_CAP),
-            links: Vec::with_capacity(DEFAULT_VEC_TAG_CAP),
+            links: Vec::with_capacity(DEFAULT_VEC_LINK_CAP),
         }
     }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-enum CLMethod {
+enum LinkMethod {
     #[serde(rename = "link")]
     Link,
     #[serde(rename = "copy")]
@@ -91,7 +91,7 @@ pub struct LinkData {
     source: PathBuf,
     destination: PathBuf,
     #[serde(default = "LinkData::method_default")]
-    method: CLMethod,
+    method: LinkMethod,
     #[serde(default = "LinkOptions::default")]
     options: LinkOptions,
     #[serde(default = "LinkConditions::default")]
@@ -99,8 +99,8 @@ pub struct LinkData {
 }
 
 impl LinkData {
-    fn method_default() -> CLMethod {
-        CLMethod::Link
+    fn method_default() -> LinkMethod {
+        LinkMethod::Link
     }
 }
 
@@ -109,7 +109,8 @@ impl LinkData {
         debug!("\nLinked: {:?} -> {:?}", &self.source, &self.destination);
 
         if self.options.destructive && self.destination.exists() {
-            fs::remove_file(self.destination.as_path());
+            fs::remove_file(self.destination.as_path())
+                .expect("Failed to remove file");
         }
 
         if self.filters.filter_host() && self.filters.filter_user() {
@@ -121,7 +122,7 @@ impl LinkData {
         }
     }
 
-    fn method(&self) -> &CLMethod {
+    fn method(&self) -> &LinkMethod {
         &self.method
     }
 }

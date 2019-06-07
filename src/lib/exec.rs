@@ -1,11 +1,8 @@
-use super::error::InstallerErr;
-use super::filters;
+use std::fs;
+use std::path::Path;
+
 use crate::filters::filter_tags;
 use crate::{option::Opt, types::*, FailErr};
-use serde::de::DeserializeOwned;
-use std::error::Error;
-use std::fs;
-use std::path::{Path, PathBuf};
 
 pub fn init(opt: Opt) -> Result<(), FailErr> {
     info!("running init");
@@ -33,7 +30,7 @@ pub fn init(opt: Opt) -> Result<(), FailErr> {
         .collect::<Result<Vec<Linkfile<LinkData>>, FailErr>>();
 
     let res = res?;
-    let res2: Vec<Result<(), FailErr>> = res
+    let _: Vec<Result<(), FailErr>> = res
         .into_iter()
         .flat_map(|link_map| link_map.create_links())
         .collect();
