@@ -9,10 +9,10 @@ const DEFAULT_VEC_TAG_CAP: usize = 4;
 const DEFAULT_VEC_LINK_CAP: usize = 32;
 
 // LinkFile
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Linkfile<ConfigLink> {
+#[derive(Debug, Serialize, Deserialize, Builder)]
+pub struct Linkfile<T> {
     tags: Vec<String>,
-    links: Vec<ConfigLink>,
+    links: Vec<T>,
 }
 
 impl Linkfile<LinkData> {
@@ -39,8 +39,8 @@ impl Default for Linkfile<LinkData> {
 }
 
 // LinkMethod
-#[derive(Debug, Serialize, Deserialize)]
-enum LinkMethod {
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum LinkMethod {
     #[serde(rename = "link")]
     Link,
     #[serde(rename = "copy")]
@@ -48,8 +48,8 @@ enum LinkMethod {
 }
 
 // LinkOptions
-#[derive(Debug, Serialize, Deserialize)]
-struct LinkOptions {
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct LinkOptions {
     destructive: bool,
 }
 
@@ -60,8 +60,8 @@ impl Default for LinkOptions {
 }
 
 // LinkConditions
-#[derive(Debug, Serialize, Deserialize)]
-struct LinkConditions {
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct LinkConditions {
     host: Option<String>,
     user: Option<String>,
 }
@@ -97,10 +97,11 @@ impl Default for LinkConditions {
 }
 
 // LinkData
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Builder, Clone)]
+#[builder(setter(into))]
 pub struct LinkData {
-    source: PathBuf,
-    destination: PathBuf,
+    pub source: PathBuf,
+    pub destination: PathBuf,
     #[serde(default = "LinkData::method_default")]
     method: LinkMethod,
     #[serde(default = "LinkOptions::default")]
@@ -115,8 +116,20 @@ impl LinkData {
     }
 }
 
+impl Default for LinkData {
+    fn default() -> Self {
+        Self {
+            source: Default::default(),
+            destination: Default::default(),
+            method: LinkMethod::Link,
+            options: LinkOptions::default(),
+            filters: LinkConditions::default(),
+        }
+    }
+}
+
 impl LinkData {
-    fn create_link(&self) -> Result<(), FailErr> {
+    pub fn create_link(&self) -> Result<(), FailErr> {
         debug!("\nLinked: {:?} -> {:?}", &self.source, &self.destination);
 
         if self.options.destructive && self.destination.exists() {
@@ -124,7 +137,7 @@ impl LinkData {
         }
 
         if self.should_create() {
-            if let Some(parent) = self.destination_dir_exists() {
+            if let Some(parent) = self.destination_dir_if_exists() {
                 std::fs::create_dir_all(parent);
             }
 
@@ -143,7 +156,7 @@ impl LinkData {
     }
 
     // returns path to parent directory if it exists, otherwise None
-    fn destination_dir_exists(&self) -> Option<&Path> {
+    pub fn destination_dir_if_exists(&self) -> Option<&Path> {
         if let Some(parent) = self.destination.parent() {
             if parent.exists() {
                 Some(parent)
@@ -157,6 +170,10 @@ impl LinkData {
                 None
             }
         }
+    }
+
+    pub fn destination_dir_exists(&self) -> bool {
+        self.destination_dir_if_exists().is_some()
     }
 }
 
@@ -186,7 +203,7 @@ impl<'a> LinkMeta<'a> {
     }
 }
 
-impl<'c, 'a: 'c> TryFrom<&'a LinkData> for LinkMeta<'a> {
+impl<'a> TryFrom<&'a LinkData> for LinkMeta<'a> {
     type Error = std::io::Error;
 
     fn try_from(link: &'a LinkData) -> Result<Self, Self::Error> {

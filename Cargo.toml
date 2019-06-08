@@ -25,3 +25,8 @@ failure = "0.1.5"
 failure_derive = "0.1.5"
 hostname = "^0.1"
 users = "0.9.1"
+derive_builder = "0.7.1"
+
+[dev-dependencies]
+tempfile = "3"
+galvanic-test = "0.2"
