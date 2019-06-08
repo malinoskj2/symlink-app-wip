@@ -1,11 +1,14 @@
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::FailErr;
+use std::convert::TryFrom;
+use std::fs::Metadata;
 
 const DEFAULT_VEC_TAG_CAP: usize = 4;
 const DEFAULT_VEC_LINK_CAP: usize = 32;
 
+// LinkFile
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Linkfile<ConfigLink> {
     tags: Vec<String>,
@@ -20,6 +23,10 @@ impl Linkfile<LinkData> {
     pub fn create_links(&self) -> Vec<Result<(), FailErr>> {
         self.links.iter().map(|link| link.create_link()).collect()
     }
+
+    pub fn get_link_metadata<'a>(&self) -> Vec<Result<LinkMeta, std::io::Error>> {
+        self.links.iter().map(LinkMeta::try_from).collect()
+    }
 }
 
 impl Default for Linkfile<LinkData> {
@@ -31,6 +38,7 @@ impl Default for Linkfile<LinkData> {
     }
 }
 
+// LinkMethod
 #[derive(Debug, Serialize, Deserialize)]
 enum LinkMethod {
     #[serde(rename = "link")]
@@ -39,6 +47,7 @@ enum LinkMethod {
     Copy,
 }
 
+// LinkOptions
 #[derive(Debug, Serialize, Deserialize)]
 struct LinkOptions {
     destructive: bool,
@@ -50,6 +59,7 @@ impl Default for LinkOptions {
     }
 }
 
+// LinkConditions
 #[derive(Debug, Serialize, Deserialize)]
 struct LinkConditions {
     host: Option<String>,
@@ -86,6 +96,7 @@ impl Default for LinkConditions {
     }
 }
 
+// LinkData
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LinkData {
     source: PathBuf,
@@ -109,14 +120,15 @@ impl LinkData {
         debug!("\nLinked: {:?} -> {:?}", &self.source, &self.destination);
 
         if self.options.destructive && self.destination.exists() {
-            fs::remove_file(self.destination.as_path())
-                .expect("Failed to remove file");
+            fs::remove_file(self.destination.as_path()).expect("Failed to remove file");
         }
 
-        if self.filters.filter_host() && self.filters.filter_user() {
-            let link_res: Result<(), std::io::Error> =
-                symlink::symlink_file(&self.source, &self.destination).map_err(|err| err.into());
-            Ok(link_res?)
+        if self.should_create() {
+            if let Some(parent) = self.destination_dir_exists() {
+                std::fs::create_dir_all(parent);
+            }
+
+            symlink::symlink_file(&self.source, &self.destination).map_err(|err| err.into())
         } else {
             Ok(())
         }
@@ -124,5 +136,64 @@ impl LinkData {
 
     fn method(&self) -> &LinkMethod {
         &self.method
+    }
+
+    fn should_create(&self) -> bool {
+        self.filters.filter_host() && self.filters.filter_user()
+    }
+
+    // returns path to parent directory if it exists, otherwise None
+    fn destination_dir_exists(&self) -> Option<&Path> {
+        if let Some(parent) = self.destination.parent() {
+            if parent.exists() {
+                Some(parent)
+            } else {
+                None
+            }
+        } else {
+            if self.destination.has_root() {
+                Some(self.destination.as_path())
+            } else {
+                None
+            }
+        }
+    }
+}
+
+impl TryFrom<&LinkData> for Metadata {
+    type Error = std::io::Error;
+    fn try_from(link: &LinkData) -> Result<Self, Self::Error> {
+        link.destination.symlink_metadata()
+    }
+}
+
+// LinkMeta
+pub struct LinkMeta<'a> {
+    source: &'a Path,
+    destination: &'a Path,
+    meta: std::fs::Metadata,
+}
+
+impl<'a> LinkMeta<'a> {
+    pub fn is_linked(&self) -> bool {
+        self.meta.file_type().is_symlink()
+    }
+    pub fn source(&self) -> &Path {
+        self.source
+    }
+    pub fn destination(&self) -> &Path {
+        self.destination
+    }
+}
+
+impl<'c, 'a: 'c> TryFrom<&'a LinkData> for LinkMeta<'a> {
+    type Error = std::io::Error;
+
+    fn try_from(link: &'a LinkData) -> Result<Self, Self::Error> {
+        std::fs::Metadata::try_from(link).map(|res| LinkMeta {
+            source: link.source.as_path(),
+            destination: link.destination.as_path(),
+            meta: res,
+        })
     }
 }
