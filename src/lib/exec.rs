@@ -1,13 +1,24 @@
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::filters::filter_tags;
 use crate::{option::Opt, types::*, FailErr};
+use crate::option::Link;
 
-pub fn init(opt: Opt) -> Result<(), FailErr> {
+pub fn init<>(opt: Opt) -> Result<(), FailErr> {
     info!("running init");
 
-    let Opt { config_files, tags } = opt;
+    match opt {
+        Opt::Link(link) => exec_link(link),
+    }.map(|res|())
+
+}
+
+fn exec_link(link: Link) -> Result<Vec<()>, FailErr> {
+    let Link {
+        config_files,
+        tags
+    } = link;
 
     let res = config_files
         .into_iter()
@@ -30,13 +41,15 @@ pub fn init(opt: Opt) -> Result<(), FailErr> {
         .collect::<Result<Vec<Linkfile<LinkData>>, FailErr>>();
 
     let res = res?;
-    let _: Vec<Result<(), FailErr>> = res
+
+    let res2: Result<Vec<()>, FailErr> = res
         .into_iter()
         .flat_map(|link_map| link_map.create_links())
         .collect();
 
-    Ok(())
+    res2
 }
+
 
 fn handle_ok(res: &Linkfile<LinkData>) {
     info!("the file is ok");
