@@ -6,6 +6,7 @@ use structopt::StructOpt;
 #[structopt(raw(setting = "structopt::clap::AppSettings::ColoredHelp"))]
 pub enum Opt {
     #[structopt(name = "link")]
+    #[structopt(raw(setting = "structopt::clap::AppSettings::ColoredHelp"))]
     Link(Link),
 }
 
