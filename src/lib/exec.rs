@@ -32,20 +32,18 @@ fn exec_list(list: List) -> Result<(), FailErr> {
 
     let linkfiles = parse(config_files.as_ref(), tags.as_slice())?;
 
-    let metadata: Vec<LinkMeta> = linkfiles
+    linkfiles
         .iter()
         .flat_map(|file| (*file).get_link_metadata())
         .flatten()
-        .collect();
-
-    metadata.iter().for_each(|meta| {
-        info!(
-            "\nstatus: {:#?}\nsource: {:#?}\nlinked @ {:#?}",
-            if meta.is_linked() { "Linked" } else { "Broken" },
-            meta.source(),
-            meta.destination()
-        );
-    });
+        .inspect(|meta| {
+            info!(
+                "\nstatus: {:#?}\nsource: {:#?}\nlinked @ {:#?}",
+                if meta.is_linked() { "Linked" } else { "Broken" },
+                meta.source(),
+                meta.destination()
+            );
+        });
 
     Ok(())
 }

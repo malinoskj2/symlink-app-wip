@@ -46,9 +46,8 @@ mod tests {
                  LinkDataBuilder::default()
             .source(PathBuf::from("/tmp/testsource"))
             .destination(PathBuf::from("/tmp/testsource"))
-            .method(LinkMethod::Link)
             .options(LinkOptions::default())
-            .filters(LinkConditions::default())
+            .conditions(LinkConditions::default())
             .build()
             .expect("failed to create_test_linkdata()")
         }
@@ -114,9 +113,8 @@ mod tests {
                      LinkDataBuilder::default()
                      .source(source_file_path.as_path())
                      .destination(dest_file_path.as_path())
-                     .method(LinkMethod::Link)
                      .options(LinkOptions::default())
-                     .filters(LinkConditions::default())
+                     .conditions(LinkConditions::default())
                      .build()
                      .expect("failed to build test LinkData")
 

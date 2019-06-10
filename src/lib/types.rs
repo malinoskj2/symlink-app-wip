@@ -38,18 +38,11 @@ impl Default for Linkfile<LinkData> {
     }
 }
 
-// LinkMethod
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub enum LinkMethod {
-    #[serde(rename = "link")]
-    Link,
-    #[serde(rename = "copy")]
-    Copy,
-}
-
 // LinkOptions
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LinkOptions {
+    // if there is something  already @ the specified destination should it be
+    // replaced with a symlink or left alone?
     destructive: bool,
 }
 
@@ -102,18 +95,10 @@ impl Default for LinkConditions {
 pub struct LinkData {
     pub source: PathBuf,
     pub destination: PathBuf,
-    #[serde(default = "LinkData::method_default")]
-    method: LinkMethod,
     #[serde(default = "LinkOptions::default")]
     options: LinkOptions,
     #[serde(default = "LinkConditions::default")]
-    filters: LinkConditions,
-}
-
-impl LinkData {
-    fn method_default() -> LinkMethod {
-        LinkMethod::Link
-    }
+    conditions: LinkConditions,
 }
 
 impl Default for LinkData {
@@ -121,15 +106,20 @@ impl Default for LinkData {
         Self {
             source: Default::default(),
             destination: Default::default(),
-            method: LinkMethod::Link,
             options: LinkOptions::default(),
-            filters: LinkConditions::default(),
+            conditions: LinkConditions::default(),
         }
     }
 }
 
 impl LinkData {
-    pub fn create_link(&self) -> Result<(), FailErr> {
+    pub fn destination_dir_exists(&self) -> bool {
+        self.destination_dir_if_exists().is_some()
+    }
+}
+
+impl Link for LinkData {
+    fn create_link(&self) -> Result<(), FailErr> {
         debug!("\nLinked: {:?} -> {:?}", &self.source, &self.destination);
 
         if self.options.destructive && self.destination.exists() {
@@ -147,16 +137,7 @@ impl LinkData {
         }
     }
 
-    fn method(&self) -> &LinkMethod {
-        &self.method
-    }
-
-    fn should_create(&self) -> bool {
-        self.filters.filter_host() && self.filters.filter_user()
-    }
-
-    // returns path to parent directory if it exists, otherwise None
-    pub fn destination_dir_if_exists(&self) -> Option<&Path> {
+    fn destination_dir_if_exists(&self) -> Option<&Path> {
         if let Some(parent) = self.destination.parent() {
             if parent.exists() {
                 Some(parent)
@@ -172,9 +153,21 @@ impl LinkData {
         }
     }
 
-    pub fn destination_dir_exists(&self) -> bool {
+    fn should_create(&self) -> bool {
+        self.conditions.filter_host() && self.conditions.filter_user()
+    }
+}
+
+pub trait Link {
+    fn create_link(&self) -> Result<(), FailErr>;
+
+    fn destination_dir_if_exists(&self) -> Option<&Path>;
+
+    fn destination_dir_exists(&self) -> bool {
         self.destination_dir_if_exists().is_some()
     }
+
+    fn should_create(&self) -> bool;
 }
 
 impl TryFrom<&LinkData> for Metadata {
