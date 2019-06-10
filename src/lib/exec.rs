@@ -7,11 +7,7 @@ use crate::{option::Opt, types::*, FailErr};
 
 pub fn init(opt: Opt) -> Result<(), FailErr> {
     info!("running init");
-
-    match opt {
-        Opt::Link(link) => link.exec().map(|_| ()),
-        Opt::List(list) => list.exec(),
-    }
+    opt.exec()
 }
 
 pub fn handle_ok(res: &Linkfile<LinkData>) {
