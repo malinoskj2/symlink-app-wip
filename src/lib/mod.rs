@@ -15,10 +15,13 @@ extern crate derive_builder;
 pub use failure::Error as FailErr;
 
 mod error;
-pub mod exec;
 mod filters;
-pub mod option;
 mod types;
+pub mod exec;
+pub mod option;
+pub mod subcommand;
+pub mod filesystem;
+
 
 #[cfg(test)]
 mod tests {

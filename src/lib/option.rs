@@ -1,5 +1,7 @@
 use std::path::PathBuf;
 use structopt::StructOpt;
+use crate::subcommand::list::List;
+use crate::subcommand::link::Link;
 
 #[derive(StructOpt, Debug)]
 #[structopt(name = "tbd", about = "make sym links easily.", author = "")]
@@ -11,20 +13,4 @@ pub enum Opt {
     #[structopt(name = "list", about = "print symlink state")]
     #[structopt(raw(setting = "structopt::clap::AppSettings::ColoredHelp"))]
     List(List),
-}
-
-#[derive(StructOpt, Debug)]
-pub struct Link {
-    #[structopt(short = "c", long = "config", default_value = "links.yml")]
-    pub config_files: Vec<PathBuf>,
-    #[structopt(short = "t", long = "specify-tags")]
-    pub tags: Vec<String>,
-}
-
-#[derive(StructOpt, Debug)]
-pub struct List {
-    #[structopt(short = "c", long = "config", default_value = "links.yml")]
-    pub config_files: Vec<PathBuf>,
-    #[structopt(short = "t", long = "specify-tags")]
-    pub tags: Vec<String>,
 }
