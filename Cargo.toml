@@ -26,6 +26,7 @@ failure_derive = "0.1.5"
 hostname = "^0.1"
 users = "0.9.1"
 derive_builder = "0.7.1"
+walkdir = "2"
 
 [dev-dependencies]
 tempfile = "3"

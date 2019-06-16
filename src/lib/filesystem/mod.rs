@@ -5,7 +5,7 @@ use crate::types::Linkfile;
 use crate::FailErr;
 use crate::error;
 
-fn parse_linkfile<U: AsRef<Path>>(cfg_map: U) -> Result<Linkfile<LinkData>, FailErr> {
+pub fn parse_linkfile<U: AsRef<Path>>(cfg_map: U) -> Result<Linkfile<LinkData>, FailErr> {
     debug!("parsing:{:?} ", cfg_map.as_ref());
     let file = fs::File::open(&cfg_map)?;
     let cfg_map2 = serde_yaml::from_reader(file)?;
