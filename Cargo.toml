@@ -1,9 +1,9 @@
 [package]
-name = "yamlink"
+name = "tbd"
 version = "0.2.0"
 authors = ["Jesse Malinosky <jesse@malinoskj2.dev>"]
 edition = "2018"
-description = "make sym links and deploy files with yaml"
+description = "make sym links easily."
 
 [lib]
 name="lib_yamlink"
