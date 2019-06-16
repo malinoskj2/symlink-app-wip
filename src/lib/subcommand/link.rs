@@ -1,8 +1,11 @@
-use structopt::StructOpt;
 use std::path::PathBuf;
-use super::SubCommand;
-use super::FailErr;
+
+use structopt::StructOpt;
+
 use crate::filesystem::parse;
+
+use super::FailErr;
+use super::SubCommand;
 
 #[derive(StructOpt, Debug)]
 pub struct Link {
@@ -14,9 +17,7 @@ pub struct Link {
 
 impl SubCommand for Link {
     fn exec(&self) -> Result<(), FailErr> {
-
-        let linkfiles = parse(self.config_files.as_ref(),
-                              self.tags.as_slice())?;
+        let linkfiles = parse(self.config_files.as_ref(), self.tags.as_slice())?;
 
         let res: Result<Vec<()>, FailErr> = linkfiles
             .into_iter()

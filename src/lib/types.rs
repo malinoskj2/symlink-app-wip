@@ -1,9 +1,9 @@
-use std::fs;
-use std::path::{Path, PathBuf};
-
-use crate::FailErr;
 use std::convert::TryFrom;
 use std::fs::Metadata;
+use std::path::{Path, PathBuf};
+use std::{fmt, fs};
+
+use crate::FailErr;
 
 const DEFAULT_VEC_TAG_CAP: usize = 4;
 const DEFAULT_VEC_LINK_CAP: usize = 32;
@@ -158,6 +158,9 @@ impl Link for LinkData {
     }
 }
 
+// only one implementor right now
+// might be useful for mocking later,
+// well see. maybe it stays maybe it goes
 pub trait Link {
     fn create_link(&self) -> Result<(), FailErr>;
 
@@ -181,13 +184,18 @@ impl TryFrom<&LinkData> for Metadata {
 pub struct LinkMeta<'a> {
     source: &'a Path,
     destination: &'a Path,
-    meta: std::fs::Metadata,
+    meta: Option<std::fs::Metadata>,
 }
 
 impl<'a> LinkMeta<'a> {
     pub fn is_linked(&self) -> bool {
-        self.meta.file_type().is_symlink()
+        if let Some(meta) = &self.meta {
+            meta.file_type().is_symlink()
+        } else {
+            false
+        }
     }
+
     pub fn source(&self) -> &Path {
         self.source
     }
@@ -200,10 +208,45 @@ impl<'a> TryFrom<&'a LinkData> for LinkMeta<'a> {
     type Error = std::io::Error;
 
     fn try_from(link: &'a LinkData) -> Result<Self, Self::Error> {
-        std::fs::Metadata::try_from(link).map(|res| LinkMeta {
-            source: link.source.as_path(),
-            destination: link.destination.as_path(),
-            meta: res,
-        })
+        std::fs::Metadata::try_from(link)
+            .map(|res| LinkMeta {
+                source: link.source.as_path(),
+                destination: link.destination.as_path(),
+                meta: Some(res),
+            })
+            .or_else(|_| {
+                Ok(LinkMeta {
+                    source: link.source.as_path(),
+                    destination: link.destination.as_path(),
+                    meta: None,
+                })
+            })
+    }
+}
+
+use crossterm_style::{style, Attribute, Color, Colored, Colorize, Styler};
+
+impl<'a> fmt::Display for LinkMeta<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let delim = format!("{:-^1$}", "Link", crate::term::width().unwrap_or_default());
+        let status_string = if self.is_linked() {
+            style("Linked").with(Color::Green)
+        } else {
+            style("Off").dim()
+        };
+
+        write!(
+            f,
+            "\n{}\nstatus: {}\nsource: {:#?}\n{}{:#?}\n\n",
+            delim,
+            status_string,
+            self.source(),
+            if self.is_linked() {
+                style("linked @")
+            } else {
+                style("NOT linked @ ").dim()
+            },
+            self.destination(),
+        )
     }
 }

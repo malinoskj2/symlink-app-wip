@@ -1,7 +1,6 @@
 /// The enum holding the various errors used in the crate
-use crate::types::{Linkfile, LinkData};
+use crate::types::{LinkData, Linkfile};
 use crate::FailErr;
-
 
 #[derive(Debug, Fail)]
 pub enum InstallerErr {

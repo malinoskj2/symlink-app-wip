@@ -1,8 +1,10 @@
 use std::path::PathBuf;
+
 use structopt::StructOpt;
-use crate::subcommand::list::List;
-use crate::subcommand::link::Link;
+
 use crate::subcommand::config::Config;
+use crate::subcommand::link::Link;
+use crate::subcommand::list::List;
 use crate::subcommand::version::Version;
 use crate::subcommand::SubCommand;
 use crate::FailErr;

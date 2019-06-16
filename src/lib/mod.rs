@@ -1,37 +1,39 @@
 #[macro_use]
-extern crate log;
+extern crate derive_builder;
 extern crate env_logger;
-
+#[macro_use]
+extern crate failure_derive;
+#[macro_use]
+extern crate log;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_yaml;
-
 #[macro_use]
-extern crate failure_derive;
-
-#[macro_use]
-extern crate derive_builder;
+extern crate cached;
 
 pub use failure::Error as FailErr;
 
 mod error;
+pub mod filesystem;
 mod filters;
-mod types;
 pub mod option;
 pub mod subcommand;
-pub mod filesystem;
-
+pub mod term;
+mod types;
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::types::*;
-    use galvanic_test::test_suite;
     use std::fs::File;
     use std::io::{self, Write};
     use std::path::{Path, PathBuf};
     use std::time::{Duration, SystemTime};
+
+    use galvanic_test::test_suite;
     use tempfile::{tempdir, TempDir};
+
+    use crate::types::*;
+
+    use super::*;
 
     test_suite! {
         name tags;

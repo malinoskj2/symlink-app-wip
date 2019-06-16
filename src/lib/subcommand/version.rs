@@ -1,8 +1,10 @@
-use structopt::StructOpt;
 use std::path::PathBuf;
-use super::SubCommand;
+
+use structopt::clap::{crate_name, crate_version};
+use structopt::StructOpt;
+
 use super::FailErr;
-use structopt::clap::{crate_version, crate_name};
+use super::SubCommand;
 
 #[derive(StructOpt, Debug)]
 pub struct Version {}
