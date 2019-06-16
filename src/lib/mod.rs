@@ -17,7 +17,6 @@ pub use failure::Error as FailErr;
 mod error;
 mod filters;
 mod types;
-pub mod exec;
 pub mod option;
 pub mod subcommand;
 pub mod filesystem;

@@ -3,7 +3,7 @@ use crate::types::LinkData;
 use std::fs;
 use crate::types::Linkfile;
 use crate::FailErr;
-use crate::exec::*;
+use crate::error;
 
 fn parse_linkfile<U: AsRef<Path>>(cfg_map: U) -> Result<Linkfile<LinkData>, FailErr> {
     debug!("parsing:{:?} ", cfg_map.as_ref());
@@ -20,8 +20,8 @@ pub fn parse(
         .into_iter()
         .map(|path| parse_linkfile(path))
         .inspect(|res| match res.as_ref() {
-            Ok(res) => handle_ok(res),
-            Err(err) => handle_err(err),
+            Ok(res) => error::handle_ok(res),
+            Err(err) => error::handle_err(err),
         })
         .collect::<Result<Vec<Linkfile<LinkData>>, FailErr>>()
 }
