@@ -10,13 +10,13 @@ use crate::FailErr;
 #[structopt(name = "tbd", about = "make sym links easily.", author = "")]
 #[structopt(raw(setting = "structopt::clap::AppSettings::ColoredHelp"))]
 pub enum Opt {
-    #[structopt(name = "link", about = "create symlinks")]
+    #[structopt(name = "link", about = "create symlinks", author = "")]
     #[structopt(raw(setting = "structopt::clap::AppSettings::ColoredHelp"))]
     Link(Link),
-    #[structopt(name = "list", about = "print symlink state")]
+    #[structopt(name = "list", about = "print symlink state", author = "")]
     #[structopt(raw(setting = "structopt::clap::AppSettings::ColoredHelp"))]
     List(List),
-    #[structopt(name = "config", about = "validate and print config file")]
+    #[structopt(name = "config", about = "validate and print config file", author = "")]
     #[structopt(raw(setting = "structopt::clap::AppSettings::ColoredHelp"))]
     Config(Config),
 }
