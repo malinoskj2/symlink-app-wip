@@ -16,7 +16,7 @@ pub struct Link {
 }
 
 impl SubCommand for Link {
-    fn exec(&self) -> Result<(), FailErr> {
+    fn exec(&self) -> Result<String, FailErr> {
         let linkfiles = parse(self.config_files.as_ref(), self.tags.as_slice())?;
 
         let res: Result<Vec<()>, FailErr> = linkfiles
@@ -24,6 +24,6 @@ impl SubCommand for Link {
             .flat_map(|link_map| link_map.create_links())
             .collect();
 
-        Ok(())
+        Ok(String::from("linked okay"))
     }
 }

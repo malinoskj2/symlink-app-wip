@@ -28,7 +28,7 @@ pub enum Opt {
 }
 
 impl SubCommand for Opt {
-    fn exec(&self) -> Result<(), FailErr> {
+    fn exec(&self) -> Result<String, FailErr> {
         match self {
             Opt::Link(link) => link.exec(),
             Opt::List(list) => list.exec(),

@@ -228,7 +228,7 @@ use crossterm_style::{style, Attribute, Color, Colored, Colorize, Styler};
 
 impl<'a> fmt::Display for LinkMeta<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let delim = format!("{:-^1$}", "Link", crate::term::width().unwrap_or_default());
+        let delim = format!("{:-^1$}", "Link", crate::term::info::width().unwrap_or_default());
         let status_string = if self.is_linked() {
             style("Linked").with(Color::Green)
         } else {

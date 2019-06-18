@@ -1,6 +1,7 @@
 use crate::filesystem;
 
 use super::FailErr;
+use std::fmt;
 
 pub mod config;
 pub mod link;
@@ -8,7 +9,17 @@ pub mod list;
 pub mod version;
 
 pub trait SubCommand {
-    fn exec(&self) -> Result<(), FailErr>;
+    fn exec(&self) -> Result<String, FailErr>;
+}
+
+pub trait ErrDisplay {
+    fn err_display(&self) -> String;
+}
+
+impl ErrDisplay for FailErr {
+    fn err_display(&self) -> String {
+        format!("Err Display")
+    }
 }
 
 const DEFAULT_CFG_NAMES: [&str; 3] = ["links.yaml", "links.yml", "links.toml"];

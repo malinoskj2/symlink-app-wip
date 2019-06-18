@@ -30,6 +30,7 @@ walkdir = "2"
 term_size = "0.3.1"
 cached = "0.8.0"
 crossterm_style = "0.3.3"
+exitfailure = "0.5.1"
 
 [dev-dependencies]
 tempfile = "3"

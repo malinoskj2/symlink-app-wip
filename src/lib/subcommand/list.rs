@@ -23,7 +23,7 @@ pub struct List {
 }
 
 impl SubCommand for List {
-    fn exec(&self) -> Result<(), FailErr> {
+    fn exec(&self) -> Result<String, FailErr> {
         let dir = env::current_dir()?;
         info!("running List");
 
@@ -31,10 +31,10 @@ impl SubCommand for List {
             .inspect(|name| debug!("target_config_name: {}", name))
             .filter_map(|config_name| find_config(&dir, &config_name))
             .flat_map(|config_path| parse_linkfile(config_path))
-            .inspect(log_linkfile_meta)
+            //.inspect(log_linkfile_meta)
             .for_each(|_| ());
 
-        Ok(())
+        Ok(String::from("Found list"))
     }
 }
 

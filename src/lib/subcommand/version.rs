@@ -10,8 +10,7 @@ use super::SubCommand;
 pub struct Version {}
 
 impl SubCommand for Version {
-    fn exec(&self) -> Result<(), FailErr> {
-        println!("{} {}", crate_name!(), crate_version!());
-        Ok(())
+    fn exec(&self) -> Result<String, FailErr> {
+        Ok(format!("{} {}", crate_name!(), crate_version!()))
     }
 }

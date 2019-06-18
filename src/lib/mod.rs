@@ -2,6 +2,8 @@
 extern crate derive_builder;
 extern crate env_logger;
 #[macro_use]
+extern crate failure;
+#[macro_use]
 extern crate failure_derive;
 #[macro_use]
 extern crate log;
