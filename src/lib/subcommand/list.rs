@@ -13,9 +13,9 @@ use std::fs::metadata;
 #[derive(StructOpt, Debug)]
 pub struct List {
     #[structopt(
-        short = "n",
-        long = "name",
-        default_value = "[links.yaml, links.yml, links.toml]"
+    short = "n",
+    long = "name",
+    default_value = "[links.yaml, links.yml, links.toml]"
     )]
     pub config_names: Vec<String>,
     #[structopt(short = "t", long = "specify-tags")]
@@ -27,15 +27,26 @@ impl SubCommand for List {
         let dir = env::current_dir()?;
         info!("running List");
 
-        super::target_cfg_names(&self.config_names)
+        Ok(super::target_cfg_names(&self.config_names)
             .inspect(|name| debug!("target_config_name: {}", name))
             .filter_map(|config_name| find_config(&dir, &config_name))
             .flat_map(|config_path| parse_linkfile(config_path))
-            //.inspect(log_linkfile_meta)
-            .for_each(|_| ());
+            .map(|linkfile| generate_output_string(&linkfile))
+            .collect())
 
-        Ok(String::from("Found list"))
     }
+}
+
+fn generate_output_string(linkfile: &Linkfile<LinkData>) -> String {
+    linkfile.get_link_metadata().iter()
+        .map(|meta_res| {
+            if let Ok(meta) = meta_res {
+                print!("{}", meta);
+                meta.to_string()
+            } else {
+                String::from("failed to get metadata")
+            }
+        }).collect()
 }
 
 fn log_linkfile_meta(linkfile: &Linkfile<LinkData>) {
@@ -43,7 +54,7 @@ fn log_linkfile_meta(linkfile: &Linkfile<LinkData>) {
 
     linkfile.get_link_metadata().iter().for_each(|meta_res| {
         if let Ok(meta) = meta_res {
-            print!("{}", meta);
+            print!("");
         } else {
             print!("failed to get metadata");
         }

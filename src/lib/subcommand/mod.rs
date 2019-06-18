@@ -12,16 +12,6 @@ pub trait SubCommand {
     fn exec(&self) -> Result<String, FailErr>;
 }
 
-pub trait ErrDisplay {
-    fn err_display(&self) -> String;
-}
-
-impl ErrDisplay for FailErr {
-    fn err_display(&self) -> String {
-        format!("Err Display")
-    }
-}
-
 const DEFAULT_CFG_NAMES: [&str; 3] = ["links.yaml", "links.yml", "links.toml"];
 
 // https://github.com/clap-rs/clap/issues/1452 need this if it gets impl'd
