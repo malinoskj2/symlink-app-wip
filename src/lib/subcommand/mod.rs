@@ -30,6 +30,7 @@ const DEFAULT_CFG_NAMES: [&str; 3] = ["links.yaml", "links.yml", "links.toml"];
 pub fn target_cfg_names(from_args: &[impl AsRef<str>]) -> impl Iterator<Item = &str> {
     from_args
         .into_iter()
+        .filter(|name|!DEFAULT_CFG_NAMES.iter().any(|def_name| *def_name == name.as_ref()) )
         .map(|name| name.as_ref())
         .chain(DEFAULT_CFG_NAMES.iter().map(|name| *name))
 }
